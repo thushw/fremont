@@ -44,6 +44,7 @@ def message(east_count, west_count, quote=None):
     formatted_total = "{:,}".format(east_count+west_count)
     m = "%s bikes rode across the fremont bridge yesterday. (%s %s)" % (formatted_total, formatted_total, quote) if quote \
         else "%s bikes rode across the fremont bridge yesterday." % formatted_total
+    #truncate to what is allowed by twitter
     return m[:140]
 
 #tweet it
@@ -70,6 +71,6 @@ phrase_hash = download_integers()
 #     if k in s:
 #         print ("%d => %s" % (k, phrase_hash[k]))
 
-#tweet (message(easterners, westerners, phrase_hash[easterners+westerners]))
+tweet (message(easterners, westerners, phrase_hash.get(easterners+westerners, None)))
 
-print (phrase_hash[7253])
+#print (phrase_hash[7253])
