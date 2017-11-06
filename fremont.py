@@ -18,22 +18,38 @@ def bike_count(direction):
     r = requests.get(url)
     return r.json()[0]['comptage']
 
-def number_and_phrase(match):
-    return (int(match.group(1)), match.group(2)) if match is not None else ()
+#collect text for all siblings of this html section
+#separate the text found in adjacent siblings from each other by a space
+#and return this textual representation
+#this is better than get_text() as this handles superscripts
+def get_text_to_eol(font_section):
+    text_parts = []
+    section = font_section.next_sibling
+    while section is not None:
+        if section.name == 'a':
+            text_parts.append(section.get_text())
+        elif section.name is None:
+            text_parts.append(unicode(section))
+        else:
+            if section.name == 'sup':
+                text_parts.append('^')
+            text_parts.append(section.get_text())
+        section = section.next_sibling
+    return ' '.join(text_parts)
 
 def download_integers():
     r = requests.get("http://www2.stetson.edu/~efriedma/numbers.html")
     html = r.text
-    #split the page into html lines, taking care to handle line ends.
-    #then get just the interesting integers, which seems to have a distint font size=+3
-    entries = filter(lambda entry: re.search(r"<font size=\+3 ", entry), re.split("<br>[\r\n\s]*", html))
-    #apply the html parser to each line to extract just the text
-    number_lines = map(lambda entry: BeautifulSoup(entry, 'html.parser').get_text(), entries)
-    #one more reg exp for each text line to get the integer with the corresponding phrase
-    numbers_list = filter(lambda tuple: True if tuple else False, map(lambda line: number_and_phrase(re.search(r"(\d+)(.+)", line)), number_lines))
 
-    #store integer: phrase in a dictionary
-    hash = dict(numbers_list)
+    #split the page into html lines, taking care to handle line ends.
+    lines = re.split("<br>[\r\n\s]*", html)
+    #then get just the interesting integers, which seems to have a distint font size=+3
+    list_lines = list(filter(lambda x: x is not None, [re.search(r"<font size=\+3 .*", line) for line in lines]))
+    #apply the html parser to each line
+    soups = [BeautifulSoup(l.group(0), 'html.parser').font for l in list_lines]
+    #get text for each line
+    np_list = [(int(s.get_text()), get_text_to_eol(s)) for s in soups]
+    hash = dict(np_list)
     #some sanity test -> it is a web page, may change
     if not test(html, hash):
         print ("WARN: not a perfect screen scrape...")
