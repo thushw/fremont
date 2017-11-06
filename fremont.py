@@ -49,6 +49,7 @@ def message(east_count, west_count, quote=None):
 
 #tweet it
 def tweet(msg):
+    print("tweeting %s" % msg)
     os.system("twurl -d 'status=%s' /1.1/statuses/update.json" % msg)
 
 easterners = int(bike_count("east"))
@@ -71,6 +72,6 @@ phrase_hash = download_integers()
 #     if k in s:
 #         print ("%d => %s" % (k, phrase_hash[k]))
 
-tweet (message(easterners, westerners, phrase_hash.get(easterners+westerners, None)))
+tweet (message(easterners, westerners, phrase_hash.get(easterners+westerners, None).encode('utf-8')))
 
 #print (phrase_hash[7253])
